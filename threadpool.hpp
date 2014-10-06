@@ -12,7 +12,7 @@ T my::Data<T>::get() {
 
 template<class T>
 boost::unique_future<T> my::Data<T>::get_future() {
-    while(!set);
+    while(!set.load());
     return data;
 }
 
@@ -57,21 +57,21 @@ void my::threadpool::stop() {
 }
 
 template<class R, class FN, class... ARGS>
-void my::threadpool::add(size_t priority, std::shared_ptr<my::Data<R>> &ReturnData, FN fn, ARGS... args) {
+void my::threadpool::add(std::shared_ptr<my::Data<R>> &ReturnData, FN fn, ARGS... args) {
     std::function<R()> rfn = std::bind(fn, args...);
     function pool_fn = [=]() {
         boost::packaged_task<R> pt(rfn);
         ReturnData->data = pt.get_future();
-        ReturnData->set = true;
+        ReturnData->set.store(true);
         pt();
     };
-    fn_container.put(pool_fn, priority);
+    fn_container.put(pool_fn);
 }
 
 template<class R, class FN, class... ARGS>
-void my::threadpool::add(size_t priority, FN fn, ARGS... args) {
+void my::threadpool::add(FN fn, ARGS... args) {
     function rfn = std::bind(fn, args...);
-    fn_container.put(rfn, priority);
+    fn_container.put(rfn);
 }
 
 ////////////////////work_thread/////////////////////////

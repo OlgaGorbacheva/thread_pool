@@ -83,6 +83,7 @@ BOOST_AUTO_TEST_SUITE (stringtest)
 
 BOOST_AUTO_TEST_CASE (test1)
 {
+    my::queue<int> q;
     matrix a(100), b(100);
     generate(a);
     generate(b);
